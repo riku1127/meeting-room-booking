@@ -1,35 +1,52 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+type Room = {
+  id: number;
+  name: string;
+  room_number: string;
+  is_available: number;
+}
 
+function App() {
+  const [rooms, setRooms] = useState<Room[]>([])
+  const [error, setError] = useState("");
+
+  //一覧表示
+  const fetchRooms = async () => {
+    try {
+      const res = await fetch('/api/rooms');
+      if (!res.ok) {
+        throw new Error("部屋の取得に失敗しました");
+      }
+      const data: Room[] = await res.json();
+      setRooms(data);
+      setError("");
+    } catch (err) {
+      console.error(err);
+      setError("部屋の取得に失敗しました");
+    }
+  }
+  useEffect(() => {
+    fetchRooms()
+  }, []);
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <h1>会議室予約管理システム</h1>
+
+
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {rooms.map((room) => (
+            <li key={room.id}>
+              {room.id}({room.room_number})
+              {room.is_available ? '：空きあり' : '：使用中'}
+            </li>
+          ))}
+        </ul>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
 
-export default App
+export default App;
